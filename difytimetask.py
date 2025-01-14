@@ -37,11 +37,13 @@ class TimeTaskRemindType(Enum):
     name="difytimetask",
     desire_priority=950,
     hidden=True,
-    desc="定时任务系统，可定时处理事件",
-    version="1.0",
-    author="haikerwang",
+    desc="dify-on-wechat 定时任务插件，可定时处理事件",
+    version="1.1",
+    author="原作者：haikerwang",
 )
-    
+# https://github.com/cm04918/difytimetask
+# dify-on-wechat 定时任务插件
+
 
 # 在 TimeTask 类的 __init__ 方法中初始化 GewechatClient
 class difytimetask(Plugin):
