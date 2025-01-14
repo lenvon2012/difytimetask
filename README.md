@@ -5,6 +5,9 @@
 DifyTimeTask 是一个基于 Python 的定时任务插件，修改自原脚本 https://github.com/haikerapples/timetask 作用在帮助用户通过简单的指令创建、管理和执行定时任务。该插件支持多种任务类型，包括个人任务、群任务、GPT 任务等，并且可以通过 Excel 文件持久化存储任务数据。插件还支持任务的延时执行、任务列表查看、任务取消等功能。
 
 ## 插件环境
+2025年1月25日：修正 difytimetask 插件在处理其特定命令时检查管理员权限，会影响其他插件的正常运行问题。
+
+## 插件环境
 
 此插件只能在 https://github.com/hanfangyuan4396/dify-on-wechat 下运行。
 
