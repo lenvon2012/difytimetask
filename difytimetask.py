@@ -37,13 +37,11 @@ class TimeTaskRemindType(Enum):
     name="difytimetask",
     desire_priority=950,
     hidden=True,
-    desc="dify-on-wechat 定时任务插件，可定时处理事件",
-    version="1.1",
-    author="原作者：haikerwang",
+    desc="定时任务系统，可定时处理事件",
+    version="1.0",
+    author="haikerwang",
 )
-# https://github.com/cm04918/difytimetask
-# dify-on-wechat 定时任务插件
-
+    
 
 # 在 TimeTask 类的 __init__ 方法中初始化 GewechatClient
 class difytimetask(Plugin):
@@ -133,7 +131,7 @@ class difytimetask(Plugin):
                 reply.type = ReplyType.ERROR
                 reply.content = "您未通过管理员认证，无法使用定时任务功能。输入 #auth [口令] 进行认证。"
                 e_context["reply"] = reply
-                # 不中断事件处理流程，允许其他插件继续处理
+                e_context.action = EventAction.BREAK_PASS  # 明确中断事件处理流程
                 return
     
             # 处理定时任务
