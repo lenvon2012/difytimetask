@@ -38,10 +38,12 @@ class TimeTaskRemindType(Enum):
     desire_priority=950,
     hidden=True,
     desc="定时任务系统，可定时处理事件",
-    version="1.0",
+    version="1.1",
     author="haikerwang",
 )
-    
+
+# https://github.com/cm04918/difytimetask
+# 此插件只能在 https://github.com/hanfangyuan4396/dify-on-wechat 下运行，请勿与timetask 同时使用。
 
 # 在 TimeTask 类的 __init__ 方法中初始化 GewechatClient
 class difytimetask(Plugin):
@@ -182,6 +184,8 @@ class difytimetask(Plugin):
                 e_context["context"]["msg"].other_user_id = group_id
                 e_context["context"]["msg"].other_user_nickname = group_title
                 e_context["context"]["msg"].is_group = True  # 设置为群聊任务
+                # 将群名称写入 toUser 字段（列 H）
+                e_context["context"]["msg"].to_user_nickname = group_title
             else:
                 self.replay_use_default(f"未找到群: {group_title}", e_context)
                 return
@@ -196,6 +200,8 @@ class difytimetask(Plugin):
                 eventStr = eventStr.replace(f"user[{user_nickname}]", "").strip()
                 # 设置目标用户 ID
                 e_context["context"]["msg"].other_user_id = user_id
+                # 将用户昵称写入 toUser 字段（列 H）
+                e_context["context"]["msg"].to_user_nickname = user_nickname
             else:
                 self.replay_use_default(f"未找到用户: {user_nickname}", e_context)
                 return
@@ -335,7 +341,7 @@ class difytimetask(Plugin):
                 
                 # 任务类型和对象
                 task_type = "群任务" if taskModel.isGroup else "个人任务"
-                task_target = taskModel.other_user_nickname if taskModel.other_user_nickname else "未知"
+                task_target = taskModel.toUser if taskModel.toUser else "未知"  # 从列 H 中提取对象名称
                 
                 # 延时时间
                 delay_info = f"【延时时间】：{taskModel.delay_range}分钟" if taskModel.delay_range else ""
@@ -355,7 +361,7 @@ class difytimetask(Plugin):
         reply_text = reply_text + tempStr
         
         # 回复
-        self.replay_use_default(reply_text, e_context)   
+        self.replay_use_default(reply_text, e_context)  
         
           
     #添加任务
@@ -899,28 +905,71 @@ class difytimetask(Plugin):
     def get_help_text(self, **kwargs):
         # 指令前缀
         command_prefix = self.conf.get("command_prefix", "$time")
-
-        h_str = "🎉功能一：添加定时任务\n"
-        codeStr = f"【指令】：{command_prefix} 周期 时间 事件\n"
-        circleStr = "【周期】：今天、明天、后天、每天、工作日、每周X（如：每周三）、YYYY-MM-DD的日期、cron表达式\n"
-        timeStr = "【时间】：X点X分（如：十点十分）、HH:mm:ss的时间\n"
-        enventStr = "【事件】：早报、点歌、搜索、GPT、文案提醒（如：提醒我健身）\n"
-        exampleStr = f"👉提醒任务：{command_prefix} 今天 10:00 提醒我健身\n" + f"👉cron任务：{command_prefix} cron[0 * * * *] 准点报时" + "\n"
-        exampleStr += f"👉定群任务：{command_prefix} 今天 10:00 提醒我健身 group[群标题]" + "\n"
-        exampleStr0 = f"👉GPT任务：{command_prefix} 今天 10:00 GPT 夸夸我\n\n\n"
-        tempStr = h_str + codeStr + circleStr + timeStr + enventStr + exampleStr + exampleStr0
-        
-        h_str1 = "🎉功能二：取消定时任务\n"
-        codeStr1 = f"【指令】：{command_prefix} 取消任务 任务编号\n"
-        taskId1 = "【任务编号】：任务编号（添加任务成功时，机器人回复中有）\n"
-        exampleStr1 = f"👉示例：{command_prefix} 取消任务 urwOi0he\n\n\n"
-        tempStr1 = h_str1 + codeStr1 + taskId1 + exampleStr1
-        
-        h_str2 = "🎉功能三：获取任务列表\n"
-        codeStr2 = f"【指令】：{command_prefix} 任务列表\n"
-        exampleStr2 = f"👉示例：{command_prefix} 任务列表\n\n\n"
-        tempStr2 = h_str2 + codeStr2 + exampleStr2
-        
-        headStr = "📌 功能介绍：添加定时任务、取消定时任务、获取任务列表。\n\n"
-        help_text = headStr + tempStr + tempStr1 + tempStr2
+    
+        help_text = """
+    📌 功能介绍：添加定时任务、取消定时任务、获取任务列表、延时任务、个人任务、群任务等。
+    
+    🎉 功能一：添加定时任务
+        【指令格式】: 
+        {command_prefix} 周期 时间 事件 group[群标题] t[延时时间]
+        {command_prefix} 周期 时间 事件 user[用户昵称] t[延时时间]
+        【周期】: 
+            - 今天、明天、后天
+            - 每天、工作日
+            - 每周X（如：每周三）
+            - YYYY-MM-DD的日期
+            - cron表达式（如：cron[0 * * * *]）
+        【时间】: 
+            - X点X分（如：十点十分）
+            - HH:mm:ss的时间（如：10:00:00）
+        【事件】: 
+            - 早报、点歌、搜索
+            - GPT（如：GPT 夸夸我）
+            - 文案提醒（如：提醒我健身）
+        【群任务】: 
+            - 使用 group[群标题] 指定群聊，任务将在指定群聊中执行。
+            - 示例: {command_prefix} 今天 10:00 提醒我健身 group[工作群]
+        【个人任务】: 
+            - 使用 user[用户昵称] 指定用户，任务将发送给指定用户。
+            - 示例: {command_prefix} 今天 10:00 提醒我健身 user[小明]
+        【延时任务】: 
+            - 使用 t[延时时间] 指定任务的延时执行时间（单位：分钟）。
+            - 示例: {command_prefix} 今天 10:00 提醒我健身 t[5-10] （表示任务将在10:05到10:10之间随机执行）
+        【示例】:
+            - 提醒任务: {command_prefix} 今天 10:00 提醒我健身
+            - cron任务: {command_prefix} cron[0 * * * *] 准点报时
+            - 定群任务: {command_prefix} 今天 10:00 提醒我健身 group[工作群]
+            - 个人任务: {command_prefix} 今天 10:00 提醒我健身 user[小明]
+            - 延时任务: {command_prefix} 今天 10:00 提醒我健身 t[5-10]
+            - GPT任务: {command_prefix} 今天 10:00 GPT 夸夸我
+    
+    🎉 功能二：取消定时任务
+        【指令格式】: {command_prefix} 取消任务 任务编号
+        【任务编号】: 任务编号（添加任务成功时，机器人回复中有）
+        【示例】: {command_prefix} 取消任务 urwOi0he
+    
+    🎉 功能三：取消所有任务
+        【指令格式】: {command_prefix} 取消所有任务
+        【示例】: {command_prefix} 取消所有任务
+    
+    🎉 功能四：获取任务列表
+        【指令格式】: {command_prefix} 任务列表
+        【示例】: {command_prefix} 任务列表
+    
+    🎉 功能五：延时任务
+        【指令格式】: {command_prefix} 周期 时间 事件 t[延时时间]
+        【延时时间】: 任务的延时执行时间（单位：分钟），格式为 t[最小延时-最大延时]。
+        【示例】: {command_prefix} 今天 10:00 提醒我健身 t[5-10] （表示任务将在10:05到10:10之间随机执行）
+    
+    🎉 功能六：个人任务
+        【指令格式】: {command_prefix} 周期 时间 事件 user[用户昵称]
+        【用户昵称】: 指定接收任务的用户昵称。
+        【示例】: {command_prefix} 今天 10:00 提醒我健身 user[小明]
+    
+    🎉 功能七：群任务
+        【指令格式】: {command_prefix} 周期 时间 事件 group[群标题]
+        【群标题】: 指定接收任务的群聊标题。
+        【示例】: {command_prefix} 今天 10:00 提醒我健身 group[工作群]
+        """.format(command_prefix=command_prefix)
+    
         return help_text
