@@ -545,13 +545,38 @@ class difytimetask(Plugin):
                 # 周期
                 circleStr = wordsArray[0]
                 # 时间
-                timeStr = wordsArray[1]
+                timeStr = self.format_time(wordsArray[1])  # 调用时间格式化函数
                 # 事件
                 eventStr = ' '.join(map(str, wordsArray[2:])).strip()
     
         return circleStr, timeStr, eventStr
             
-    
+
+    def format_time(self, time_str):
+        """将不完整的时间格式转换为标准的 HH:mm:ss 格式"""
+        try:
+            # 如果时间字符串包含秒，直接返回
+            if len(time_str.split(':')) == 3:
+                return time_str
+            
+            # 分割小时和分钟
+            parts = time_str.split(':')
+            if len(parts) != 2:
+                return time_str  # 如果不是标准的时间格式，直接返回原字符串
+            
+            hour, minute = parts
+            
+            # 补全小时和分钟
+            hour = hour.zfill(2)
+            minute = minute.zfill(2)
+            
+            # 返回标准时间格式
+            return f"{hour}:{minute}:00"
+        except Exception as e:
+            logging.error(f"时间格式化失败: {e}")
+            return time_str  # 如果格式化失败，返回原字符串
+
+
     #使用默认的回复
     def replay_use_default(self, reply_message, e_context: EventContext):
         #回复内容
