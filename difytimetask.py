@@ -172,14 +172,16 @@ class difytimetask(Plugin):
         # 解析周期、时间、事件
         circleStr, timeStr, eventStr = self.get_timeInfo(content)
         
-        # 检查是否指定了群聊
-        group_match = re.match(r'.*group\[([^\]]+)\]', eventStr)
-        group_title = None
+        # 检查是否指定了群聊或个人任务，考虑换行符
+        group_match = re.search(r'group\[([^\]]+)\]', eventStr, re.DOTALL)
+        user_match = re.search(r'user\[([^\]]+)\]', eventStr, re.DOTALL)
+        
+        # 处理群任务
         if group_match:
-            group_title = group_match.group(1)
+            group_title = group_match.group(1).strip()
             group_id = self._get_group_id_by_title(group_title)  # 获取群 ID
             if group_id:
-                eventStr = eventStr.replace(f"group[{group_title}]", "").strip()
+                eventStr = re.sub(r'group\[([^\]]+)\]', '', eventStr, flags=re.DOTALL).strip()
                 # 设置群 ID 和其他字段
                 e_context["context"]["msg"].other_user_id = group_id
                 e_context["context"]["msg"].other_user_nickname = group_title
@@ -190,14 +192,12 @@ class difytimetask(Plugin):
                 self.replay_use_default(f"未找到群: {group_title}", e_context)
                 return
         
-        # 检查是否指定了用户
-        user_match = re.match(r'.*user\[([^\]]+)\]', eventStr)
-        user_nickname = None
+        # 处理个人任务
         if user_match:
-            user_nickname = user_match.group(1)
+            user_nickname = user_match.group(1).strip()
             user_id = self._get_user_nickname_by_nickname(user_nickname)
             if user_id:
-                eventStr = eventStr.replace(f"user[{user_nickname}]", "").strip()
+                eventStr = re.sub(r'user\[([^\]]+)\]', '', eventStr, flags=re.DOTALL).strip()
                 # 设置目标用户 ID
                 e_context["context"]["msg"].other_user_id = user_id
                 # 将用户昵称写入 toUser 字段（列 H）
@@ -511,14 +511,14 @@ class difytimetask(Plugin):
         # 如果是任务列表命令，直接返回空值
         if content.strip() == "任务列表":
             return "", "", ""
-    
+        
         # 周期
         circleStr = ""
         # 时间
         timeStr = ""
         # 事件
         eventStr = ""
-    
+        
         # 时间格式判定
         if content.startswith("cron[") or content.startswith("Cron["):
             # cron表达式； 格式示例："cron[0,30 14 * 3 3] 吃饭"
@@ -534,7 +534,7 @@ class difytimetask(Plugin):
                 timeStr = corn_string
             else:
                 print("cron表达式 格式异常！")
-    
+        
         else:  
             # 分割
             wordsArray = content.split(" ")
@@ -548,33 +548,39 @@ class difytimetask(Plugin):
                 timeStr = self.format_time(wordsArray[1])  # 调用时间格式化函数
                 # 事件
                 eventStr = ' '.join(map(str, wordsArray[2:])).strip()
-    
+        
         return circleStr, timeStr, eventStr
             
 
     def format_time(self, time_str):
         """将不完整的时间格式转换为标准的 HH:mm:ss 格式"""
         try:
+            # 如果时间字符串为空，返回默认时间
+            if not time_str:
+                return "00:00:00"
+            
             # 如果时间字符串包含秒，直接返回
             if len(time_str.split(':')) == 3:
                 return time_str
             
             # 分割小时和分钟
             parts = time_str.split(':')
-            if len(parts) != 2:
-                return time_str  # 如果不是标准的时间格式，直接返回原字符串
-            
-            hour, minute = parts
-            
-            # 补全小时和分钟
-            hour = hour.zfill(2)
-            minute = minute.zfill(2)
-            
-            # 返回标准时间格式
-            return f"{hour}:{minute}:00"
+            if len(parts) == 1:
+                # 只有小时，补全分钟和秒
+                hour = parts[0].zfill(2)
+                return f"{hour}:00:00"
+            elif len(parts) == 2:
+                # 有小时和分钟，补全秒
+                hour, minute = parts
+                hour = hour.zfill(2)
+                minute = minute.zfill(2)
+                return f"{hour}:{minute}:00"
+            else:
+                # 其他情况，返回默认时间
+                return "00:00:00"
         except Exception as e:
             logging.error(f"时间格式化失败: {e}")
-            return time_str  # 如果格式化失败，返回原字符串
+            return "00:00:00"  # 如果格式化失败，返回默认时间
 
 
     #使用默认的回复
