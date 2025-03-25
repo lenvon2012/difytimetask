@@ -139,7 +139,7 @@ class TaskManager(object):
         #配置加载
         load_config()
         self.conf = conf()
-        self.debug = self.conf.get("debug", False)
+        self.debug = self.conf.get("is_debug", False)
         #迁移任务的时间
         self.move_historyTask_time = self.conf.get("move_historyTask_time", "04:00:00")
         #默认每秒检测一次
