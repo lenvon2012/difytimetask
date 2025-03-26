@@ -252,7 +252,7 @@ class difytimetask(Plugin):
             
             # 任务类型和对象
             task_type = "群任务" if msg.is_group else "个人任务"
-            task_target = group_title if msg.is_group else user_nickname
+            task_target = group_title if msg.is_group else (user_nickname if 'user_nickname' in locals() else msg.other_user_nickname or msg.from_user_nickname)
             
             # 延时时间
             delay_info = f"【延时时间】：{delay_range}分钟" if delay_range else ""
