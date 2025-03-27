@@ -7,7 +7,7 @@ DifyTimeTask 是一个基于 Python 的定时任务插件，修改自原脚本 h
 ## 修正说明
 2025年3月25日：
 
-修正插件在调试模式下与DOW冲突的情况。配置中的“debug”修改为“is_debug” TimeTaskTool.py文件，142行，将 self.debug = self.conf.get("debug", False) 改为 “self.debug = self.conf.get("is_debug", False)”
+修正插件在调试模式下与DOW冲突的情况。
 
 2025年2月8日：
 
