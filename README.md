@@ -32,6 +32,61 @@ DifyTimeTask 是一个基于 Python 的定时任务插件，修改自原脚本 h
 
 插件存放路径：dify-on-wechat/plugins/difytimetask
 
+
+---
+
+### difytimetask 安装教程
+
+#### 安装步骤
+
+1. **进入项目目录**  
+   打开终端并进入您的 DOW 项目目录下的 plugins 文件夹：  
+   ```
+   cd DOW项目目录/plugins/
+   ```
+
+2. **克隆插件仓库**  
+   使用 git 命令克隆 difytimetask 仓库：  
+   ```
+   git clone https://github.com/cm04918/difytimetask
+   ```
+
+3. **进入插件目录**  
+   进入刚刚克隆的 difytimetask 插件目录：  
+   ```
+   cd difytimetask
+   ```
+
+4. **安装依赖**  
+   使用 pip3 安装项目所需的依赖包：  
+   ```
+   pip3 install -r requirements.txt
+   ```  
+
+#### 插件管理命令
+
+在机器人对话中，您可以使用以下命令来管理插件：
+
+1. **扫描新插件**  
+   ```
+   #scanp
+   ```  
+   此命令会扫描插件目录以检测新安装的插件。
+
+2. **查看插件列表**  
+   ```
+   #plist
+   ```  
+   此命令会显示当前所有可用插件的列表。
+
+3. **启用插件**  
+   ```
+   #enablep difytimetask
+   ```  
+   此命令会启用 difytimetask 插件。
+
+---
+
 #### 亮点功能
 
 1. **多任务类型支持**：
