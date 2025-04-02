@@ -758,7 +758,7 @@ class difytimetask(Plugin):
                 replyType = reply.type
             
         #原消息
-        if reply_text is None or len(reply_text) <= 0:
+        if reply_text is None or (replyType != ReplyType.IMAGE and len(reply_text) <= 0):
             #标题
             if self.conf.get("is_need_title_whenNormalReply", True):
                 reply_text += f"⏰叮铃铃，定时任务时间已到啦~\n"
